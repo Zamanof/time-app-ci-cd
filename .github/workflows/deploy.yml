@@ -27,3 +27,11 @@ jobs:
       - name: Run unit tests
         working-directory: ./api
         run: npm test
+
+      - name: Docker login
+        run: echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}"
+
+      - name: Front image build and push
+        run: |
+          docker build -t ${{secrets.DOCKER_USERNAME}}/time-app-fr ./frontend
+          docker push ${{secrets.DOCKER_USERNAME}}/time-app-fr
