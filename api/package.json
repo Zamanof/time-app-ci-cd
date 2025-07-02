@@ -7,7 +7,6 @@
     "start": "NODE_ENV=production node index.mjs",
     "dev": "nodemon --exitcrash index.mjs",
     "test": "jest"
-
   },
   "keywords": [],
   "author": "",
