@@ -1,0 +1,21 @@
+name: CI/CD for time-app project
+
+on:
+  push:
+    branches: ["main"]
+
+strategy:
+  matrix:
+    node-version: ['20.19.3']    
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+  steps:
+    - name: Clone repsoitory
+      uses: actions/chekout@v4
+      
+    - name: Install Node.JS ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
