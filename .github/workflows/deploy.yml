@@ -82,3 +82,4 @@ jobs:
             timeout /T 20
             curl -f http://localhost:3000 || (echo Frontend health check failed & exit /b 1)
             curl -f http://localhost:5000 || (echo API health check failed & exit /b 1)
+
