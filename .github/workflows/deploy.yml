@@ -71,6 +71,7 @@ jobs:
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           port: 22
           script: |
+            start calc
             cd C:\Users\zamanov\Documents\time-app
             git pull origin main
             docker-compose pull
