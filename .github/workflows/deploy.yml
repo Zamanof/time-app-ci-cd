@@ -71,15 +71,23 @@ jobs:
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           port: 22
           script: |
-            whoami
-            dir C:\Users\zamanov\Documents
-            cd C:\Users\zamanov\Documents\time-app
+            cd /opt/time-app
             git pull origin main
             docker-compose pull
             docker-compose down
             docker-compose up -d
             docker image prune -f
-            timeout /T 20
-            curl -f http://localhost:3000 || (echo Frontend health check failed & exit /b 1)
-            curl -f http://localhost:5000 || (echo API health check failed & exit /b 1)
+            sleep 20
+            if curl -f http://localhost:3000 > /dev/null 2>&1; then
+              echo "Frontend is healthy"
+            else
+              echo "Frontend health check failed"
+              exit 1
+            fi
+            if curl -f http://localhost:5000 > /dev/null 2>&1; then
+              echo "API is healthy"
+            else
+              echo "API health check failed"
+              exit 1
+            fi
 
