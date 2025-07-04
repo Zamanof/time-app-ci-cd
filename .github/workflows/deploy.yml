@@ -13,7 +13,6 @@ env:
 
 jobs:
   test:
-    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -38,7 +37,6 @@ jobs:
         run: npm install
 
   build-and-push:
-    if: github.event_name != 'workflow_dispatch'
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -60,6 +58,7 @@ jobs:
 
   deploy:
     if: github.event_name == 'workflow_dispatch'
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
