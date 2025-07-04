@@ -1,4 +1,4 @@
-name: CI/CD for time-app project CD
+name: CI/CD for time-app project
 
 on:
   push:
@@ -39,6 +39,7 @@ jobs:
   build-and-push:
     needs: test
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
