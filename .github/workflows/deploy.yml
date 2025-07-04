@@ -12,7 +12,7 @@ env:
 
 jobs:
     test:
-        if: 'github.event_name != workflow_dispatch'
+        if: github.event_name != 'workflow_dispatch'
         runs-on: ubuntu-latest
         strategy:
             matrix:
@@ -36,7 +36,7 @@ jobs:
               working-directory: ./frontend
               run: npm install
     build-and-push:
-        if: 'github.event_name != workflow_dispatch'
+        if: github.event_name != 'workflow_dispatch'
         needs: test
         runs-on: ubuntu-latest
         
@@ -76,7 +76,7 @@ jobs:
                 docker push ${{secrets.DOCKER_USERNAME}}/time-app-front
             
     deploy:
-        if: 'github.event_name == workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch'
         needs: build-and-push
         runs-on: ubuntu-latest
         
