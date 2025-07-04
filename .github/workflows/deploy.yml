@@ -82,7 +82,7 @@ jobs:
               uses: actions/checkout@v4
             
             - name: Azure VM Deploy
-              uses: appleboy/ssh-actions@v1
+              uses: appleboy/ssh-action@v1
               with:
                 host: ${{secrets.AZURE_VM_HOST}}
                 username: ${{secrets.AZURE_VM_USERNAME}}
