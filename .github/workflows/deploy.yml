@@ -71,7 +71,6 @@ jobs:
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           port: 22
           script: |
-            script: |
             whoami
             dir C:\Users\zamanov\Documents
             cd C:\Users\zamanov\Documents\time-app
