@@ -1,37 +1,111 @@
-name: CI/CD for time-app project
+name: CI/CD for time-app project CD
 
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]  
+env:
+    REGISTRY: gchr.io
+    IMAGE_NAME: ${{github.repository}}
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: ['20.19.3']
+        steps:
+            - name: Checkout repository
+              uses: actions/chekout@v4
+          
+            - name: Setup Node.js ${{matrix.node-version}}
+              uses: actions/setup-node@v4
+            
+            - name: Install API Dependencies
+              working-directory: ./api
+              run: npm install
+            
+            - name: Run unit tests
+              working-directory: ./api
+              run: npm test
+    
+            - name: Install Frontend Dependencies
+              working-directory: ./frontend
+              run: npm install
+    build-and-push:
+        needs: test
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
 
-    strategy:
-      matrix:
-        node-version: ['20.19.3'] 
-    steps:
-      - name: Repositorini klonla
-        uses: actions/checkout@v4
-      
-      - name: Install Node.JS ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-      
-      - name: API Dependency Install
-        working-directory: ./api
-        run: npm install
+        steps:
+            - name: Checkout repository
+              uses: actions/chekout@v4
+          
+            - name: Login to Docker Registry
+              run: echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
+            
+            # - name: Login to Docker Registry v2
+            #   uses: docker/login-action@v3
+            #   with:
+            #     registry: ${{env.REGISTRY}}
+            #     username: ${{github.actor}}
+            #     password: ${{secrets.DOCKER_PASSWORD}}
 
-      - name: Run unit tests
-        working-directory: ./api
-        run: npm test
+            # - name: Extract metadata
+            #   id: meta
+            #   uses: docker/metadata-actions@v5
+            #   with: 
+            #     images: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
+            #     tags: type=ref, event=branch
+            #           type=ref, event=pr
+            #           type=sha.prefix={{branch}}-
+            #           type=raw, value=latest, enable={{is_default_branch}}
 
-      - name: Docker login
-        run: echo "${{secrets.DOCKER_PASSWORD}}" | docker login -u "${{secrets.DOCKER_USERNAME}}" --password-stdin
+            - name: API image build and push
+              run: |
+                docker build -t ${{secrets.DOCKER_USERNAME}}/time-app-api ./api
+                docker push ${{secrets.DOCKER_USERNAME}}/time-app-api
+            
+            - name: Front image build and push
+              run: |
+                docker build -t ${{secrets.DOCKER_USERNAME}}/time-app-front ./frontend
+                docker push ${{secrets.DOCKER_USERNAME}}/time-app-front
+            
+    deploy:
+        needs: build-and-push
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
 
-      - name: Front image build and push
-        run: |
-          docker build -t ${{secrets.DOCKER_USERNAME}}/time-app-fr ./frontend
-          docker push ${{secrets.DOCKER_USERNAME}}/time-app-fr
+        steps:
+            - name: Checkout repository
+              uses: actions/chekout@v4
+            
+            - name: Azure VM Deploy
+              uses: appleboy/ssh-actions@v1
+              with:
+                host: ${{secrets.AZURE_VM_HOST}}
+                username: ${{secrets.AZURE_VM_USERNAME}}
+                key: ${{secrets.AZURE_VM_SSH_KEY}}
+                port: 22
+                script: |
+                    cd/opt/time-app
+                    git pull origin main
+                    docker-compose pull
+                    docker-compose down
+                    docker-compose up -d
+                    docker image prune -f
+                    sleep 20
+                    if curl -f http://loclahost:3000 > /dev/null/ 2 > &1; then
+                        echo "Frontent is healthy"
+                    else 
+                        echo "Frontent health check failed"
+                        exit 1
+                    fi
+                    
+                    if curl -f http://loclahost:5000 > /dev/null/ 2 > &1; then
+                        echo "API is healthy"
+                    else 
+                        echo "API health check failed"
+                        exit 1
+                    fi
