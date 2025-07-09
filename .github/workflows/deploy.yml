@@ -3,7 +3,7 @@ name: CI/CD for time-app project
 on:
   push:
     branches: ["main"]
-  # workflow_dispatch:
+  workflow_dispatch:
 
 env:
   REGISTRY: gchr.io
@@ -11,7 +11,7 @@ env:
 
 jobs:
   test:
-    # if: github.event_name == 'push'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -36,7 +36,7 @@ jobs:
         run: npm install
 
   build-and-push:
-    # if: github.event_name == 'push'
+    if: github.event_name == 'push'
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -57,8 +57,7 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/time-app-front
 
   deploy:
-    # if: github.event_name == 'workflow_dispatch'
-    needs: build-and-push
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
