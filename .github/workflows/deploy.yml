@@ -70,42 +70,4 @@ jobs:
           username: ${{ secrets.AZURE_VM_USERNAME }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
           port: 22
-          script: |
-            # Layihə qovluğu yoxdursa, klonla
-            if [ ! -d "/opt/time-app/.git" ]; then
-            sudo git clone https://github.com/${{ github.repository }} /opt/time-app
-            fi
-
-            cd /opt/time-app
-            sudo git pull origin main
-
-            # Docker Compose yoxdursa, quraşdır
-            if ! command -v docker-compose &> /dev/null; then
-            echo "Docker Compose tapılmadı, quraşdırılır..."
-            sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.6/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-            fi
-
-            # Layihəni yenilə
-            docker-compose pull
-            docker-compose down
-            docker-compose up -d
-
-            # Təmizlik
-            docker image prune -f
-
-            # Health-check
-            sleep 20
-            if curl -f http://localhost:3000 > /dev/null 2>&1; then
-              echo "✅ Frontend is healthy"
-            else
-              echo "❌ Frontend health check failed"
-              exit 1
-            fi
-
-            if curl -f http://localhost:5000 > /dev/null 2>&1; then
-              echo "✅ API is healthy"
-            else
-              echo "❌ API health check failed"
-              exit 1
-            fi
+            
